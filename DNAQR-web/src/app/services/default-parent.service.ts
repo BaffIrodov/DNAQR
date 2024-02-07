@@ -31,14 +31,14 @@ export class DefaultParentService extends BaseService {
     return await firstValueFrom(this.http.get<DefaultParent>(url + `/default-parent/${id}`));
   }
 
-  async createDefaultParent(event: DefaultParent) {
+  async createDefaultParent(de: DefaultParent) {
     const url = await this.getBackendUrl();
-    return await firstValueFrom(this.http.post(url + "/default-parent/create", event));
+    return await firstValueFrom(this.http.post(url + "/default-parent/create", de));
   }
 
-  async updateDefaultParent(id: number, event: DefaultParent) {
+  async updateDefaultParent(id: number, defaultParent: DefaultParent) {
     const url = await this.getBackendUrl();
-    return await firstValueFrom(this.http.put(url + `/default-parent/${id}/update`, event));
+    return await firstValueFrom(this.http.put(url + `/default-parent/${id}/update`, defaultParent));
   }
 
   async archiveEvent(id: number) {

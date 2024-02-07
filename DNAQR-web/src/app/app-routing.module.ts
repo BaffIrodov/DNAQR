@@ -15,7 +15,7 @@ const routes: Routes = [
     {path: 'registration', component: RegistrationFormComponent},
     {path: 'password-recover', component: PasswordRecoverFormComponent},
     {path: 'admin', component: AdminComponent,canActivate: [AuthGuard]},
-    {path: 'event', component: DefaultParentComponent,canActivate: [AuthGuard]},
+    {path: 'default-parent', component: DefaultParentComponent,canActivate: [AuthGuard]},
     {path: 'analytics', component: AnalyticsComponent}
 ];
 
