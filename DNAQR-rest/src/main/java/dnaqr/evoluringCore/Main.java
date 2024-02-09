@@ -391,21 +391,114 @@ public class Main extends Application {
     }
 
     public Square getCurrentSquare(Cell cell) {
-        if (this.mapSquareCoordinatesToIndex.get((String.valueOf(cell.coordinates.x / this.boardSettings.getSquareSize())
-                + "|" + String.valueOf(cell.coordinates.y / this.boardSettings.getSquareSize()))) == null) {
-            int wow = 0;
+        int realXCoordinate = cell.coordinates.x / this.boardSettings.getSquareSize();
+        int realYCoordinate = cell.coordinates.y / this.boardSettings.getSquareSize();
+        if (mapSquareCoordinatesToIndex.get(realXCoordinate
+                + "|" + realYCoordinate) == null) {
             cellActions.teleportCell(cell);
+            realXCoordinate = cell.coordinates.x / this.boardSettings.getSquareSize();
+            realYCoordinate = cell.coordinates.y / this.boardSettings.getSquareSize();
         }
-        if ((String.valueOf(cell.coordinates.x / this.boardSettings.getSquareSize())
-                + "|" + String.valueOf(cell.coordinates.y / this.boardSettings.getSquareSize())) != null) {
-            return squares.get(this.mapSquareCoordinatesToIndex.get((String.valueOf(cell.coordinates.x / this.boardSettings.getSquareSize())
-                    + "|" + String.valueOf(cell.coordinates.y / this.boardSettings.getSquareSize()))));
-        } else {
-            return squares.get(this.mapSquareCoordinatesToIndex.get("100" + "|" + "100"));
-        }
+        return squares.get(mapSquareCoordinatesToIndex.get(realXCoordinate
+                + "|" + realYCoordinate));
     }
 
     public static void main(String[] args) {
         launch(args);
     }
+
+
+    public void tick() {
+            currentTick++;
+            if (currentTick % 100 == 0) {
+                System.out.println("time: " + (System.currentTimeMillis() - startGameMills)
+                        + " size: " + cells.size() + " fps: " + (100000 / (System.currentTimeMillis() - startGameMills)));
+                startGameMills = System.currentTimeMillis();
+            }
+
+            if (!gameStoped) {
+
+                isFoodAdding = true;
+                if (isFoodAdding) {
+                    freeFoodAdding();
+                    closeFoodAdding();
+                }
+
+                if (isOnlyCloseAdding) {
+                    closeFoodAdding();
+                }
+
+                for (Cell cell : cells) {
+                    boolean isDeath = cell.checkIfDeath();
+                    if (!isDeath) {
+                        Square currentSquare = getCurrentSquare(cell);
+                        if (cellGenerationSettings.generateByFood) {
+                            if (cell.energy > cellGenerationSettings.costOfGenerationByFood) {
+                                cellsToAdding.add(cell.generateChild(boardSettings.getSquareSize()));
+                            }
+                        }
+                        CellActions.CellActionsNames nextAction = cell.getNextAction();
+                        switch (nextAction) {
+                            case GENERATE_CHILD -> {
+                                if (cellGenerationSettings.generateByGene) {
+                                    cellsToAdding.add(cellActions.onGenerateChild(cell));
+                                }
+                            }
+                            case DO_NOTHING -> {
+                                cellActions.onDoNothing(cell);
+                            }
+                            case MOVE_LEFT -> {
+                                currentSquare.removeObjectFromSquareItems(cell);
+                                cellActions.onMoveLeft(cell);
+                                currentSquare = getCurrentSquare(cell);
+                                currentSquare.addObjectToSquareItems(cell);
+                            }
+                            case MOVE_RIGHT -> {
+                                currentSquare.removeObjectFromSquareItems(cell);
+                                cellActions.onMoveRight(cell);
+                                currentSquare = getCurrentSquare(cell);
+                                currentSquare.addObjectToSquareItems(cell);
+                            }
+                            case MOVE_DOWN -> {
+                                currentSquare.removeObjectFromSquareItems(cell);
+                                cellActions.onMoveDown(cell);
+                                currentSquare = getCurrentSquare(cell);
+                                currentSquare.addObjectToSquareItems(cell);
+                            }
+                            case MOVE_UP -> {
+                                currentSquare.removeObjectFromSquareItems(cell);
+                                cellActions.onMoveUp(cell);
+                                currentSquare = getCurrentSquare(cell);
+                                currentSquare.addObjectToSquareItems(cell);
+                            }
+                            case EAT_CLOSE_FOOD -> {
+                                currentSquare = getCurrentSquare(cell);
+                                cellActions.onEatCloseFood(cell, currentSquare);
+                            }
+                        }
+                        if (energyCostSettings.isConsiderPassiveCost) {
+                            cell.energy -= cell.energyCost;
+                        }
+                        cell.energy--;
+                    } else {
+                        cellsToDelete.add(cell);
+//                    currentSquare.freeFood += foodAddingSettings.freeEatAddingByDeath;
+//                    currentSquare.calculateColor(true);
+                    }
+                }
+                if (!cellsToDelete.isEmpty()) {
+                    cellsToDelete.forEach(e -> cells.remove(e));
+                    cellsToDelete = new ArrayList<>();
+                }
+                if (!cellsToAdding.isEmpty()) {
+                    cells.addAll(cellsToAdding);
+                    cellsToAdding = new ArrayList<>();
+                }
+                for (Square square : squares) {
+                    if (!square.items.isEmpty()) {
+                        square.calculateEating(cells);
+                    }
+                }
+            }
+        }
 }

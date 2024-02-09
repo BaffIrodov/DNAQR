@@ -69,8 +69,10 @@ public class Cell {
 
     public Cell generateChild(int squareSize) {
         Random rand = new Random();
-        int rangeX = rand.nextInt(1, 3);
-        int rangeY = rand.nextInt(1, 3);
+//        int rangeX = rand.nextInt(1, 3);
+//        int rangeY = rand.nextInt(1, 3);
+        int rangeX = 1;
+        int rangeY = 1;
         int signForRangeX = rand.nextInt(1, 2);
         int signForRangeY = rand.nextInt(1, 2);
         if (signForRangeX == 2) {
