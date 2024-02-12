@@ -5,10 +5,7 @@ import dnaqr.evoluringCore.settings.EnergyCostSettings;
 import dnaqr.evoluringCore.settings.GameSettings;
 import javafx.scene.paint.Color;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Cell {
     public String name;
@@ -36,19 +33,6 @@ public class Cell {
         this.dna = dna;
         this.color = color;
         getCountDnaGenesByTypeAndEnergyCost();
-        actionMapGenerate();
-    }
-
-    public void actionMapGenerate() {
-        this.actionMap.put("o", CellActions.CellActionsNames.DO_NOTHING);
-        this.actionMap.put("a", CellActions.CellActionsNames.MOVE_LEFT);
-        this.actionMap.put("b", CellActions.CellActionsNames.MOVE_UP);
-        this.actionMap.put("c", CellActions.CellActionsNames.MOVE_RIGHT);
-        this.actionMap.put("d", CellActions.CellActionsNames.MOVE_DOWN);
-        this.actionMap.put("e", CellActions.CellActionsNames.EAT_CLOSE_FOOD);
-        this.actionMap.put("f", CellActions.CellActionsNames.ATTACK);
-        this.actionMap.put("g", CellActions.CellActionsNames.DEFENCE);
-        this.actionMap.put("h", CellActions.CellActionsNames.GENERATE_CHILD);
     }
 
     public CellActions.CellActionsNames getNextAction() {
@@ -60,30 +44,14 @@ public class Cell {
         }
         char nextActionInDNA = dnaCommands[dna.dnaCursor + 1];
         dna.dnaCursor++;
-        return this.actionMap.get(String.valueOf(nextActionInDNA));
-    }
-
-    public void pickDnaToAction(CellActions.CellActionsNames cellActionName, String dnaFragment) {
-        this.actionMap.put(dnaFragment, cellActionName);
+        return Main.actionMap.get(String.valueOf(nextActionInDNA));
     }
 
     public Cell generateChild(int squareSize) {
-        Random rand = new Random();
-//        int rangeX = rand.nextInt(1, 3);
-//        int rangeY = rand.nextInt(1, 3);
         int rangeX = 1;
         int rangeY = 1;
-        int signForRangeX = rand.nextInt(1, 2);
-        int signForRangeY = rand.nextInt(1, 2);
-        if (signForRangeX == 2) {
-            rangeX = -rangeX;
-        }
-        if (signForRangeY == 2) {
-            rangeY = -rangeY;
-        }
-//        this.energy -= 100;
         this.energy -= this.energy/2;
-        Cell newCell = new Cell(this.name, this.generationNumber++, /*100*/this.energy/2, new Coordinates(this.coordinates.x + rangeX * squareSize, this.coordinates.y + rangeY * squareSize), new DNA(this.dnaGeneration(this.dna.dnaCode), 0), this.color);
+        Cell newCell = new Cell(this.name, this.generationNumber++, this.energy/2, new Coordinates(this.coordinates.x + rangeX * squareSize, this.coordinates.y + rangeY * squareSize), new DNA(this.dnaGeneration(this.dna.dnaCode), 0), this.color);
         newCell.parentCell = this;
         this.childCell = newCell;
         return newCell;
@@ -95,7 +63,7 @@ public class Cell {
 
     public String dnaGeneration(String dnaCode) {
         int countOfGenesToDeleting = 1;
-        List<String> geneList = actionMap.keySet().stream().toList();
+        List<String> geneList = Main.actionMap.keySet().stream().toList();
         String genesToAdding = "";
         Random rand = new Random();
         int countOfGenesToAdding = rand.nextInt(1, 5);
@@ -146,14 +114,19 @@ public class Cell {
     }
 
     public void getCountDnaGenesByTypeAndEnergyCost() { //плата за сложность днк
-        this.attack = this.dna.dnaCode.length() - this.dna.dnaCode.replace("f", "").length();
-        this.defence = this.dna.dnaCode.length() - this.dna.dnaCode.replace("g", "").length();
-        int doNothingLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("o", "").length();
-        int moveLeftLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("a", "").length();
-        int moveRightLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("b", "").length();
-        int moveUpLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("c", "").length();
-        int moveDownLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("d", "").length();
-        int eatCloseLength = this.dna.dnaCode.length() - this.dna.dnaCode.replace("e", "").length();
+        char[] chars = this.dna.dnaCode.toCharArray();
+        Map<String, Integer> dnaCodeCountByName = new HashMap<>();
+        for (char aChar : chars) {
+            dnaCodeCountByName.merge(String.valueOf(aChar), 1, Integer::sum);
+        }
+        this.attack = Optional.ofNullable(dnaCodeCountByName.get("f")).orElse(0);
+        this.defence = Optional.ofNullable(dnaCodeCountByName.get("g")).orElse(0);
+        int doNothingLength = Optional.ofNullable(dnaCodeCountByName.get("o")).orElse(0);
+        int moveLeftLength = Optional.ofNullable(dnaCodeCountByName.get("a")).orElse(0);
+        int moveRightLength = Optional.ofNullable(dnaCodeCountByName.get("b")).orElse(0);
+        int moveUpLength = Optional.ofNullable(dnaCodeCountByName.get("c")).orElse(0);
+        int moveDownLength = Optional.ofNullable(dnaCodeCountByName.get("d")).orElse(0);
+        int eatCloseLength = Optional.ofNullable(dnaCodeCountByName.get("e")).orElse(0);
         this.energyCost = this.attack * energyCostSettings.attackPassiveCost
                 + this.defence * energyCostSettings.defencePassiveCost
                 + doNothingLength * energyCostSettings.doNothingPassiveCost

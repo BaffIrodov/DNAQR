@@ -33,6 +33,7 @@ public class Main extends Application {
     static List<Square> squares = new ArrayList<>();
     static Map<String, Integer> mapSquareCoordinatesToIndex = new HashMap<>();
     static Map<Map<Integer, Integer>, Integer> foodsMap = new HashMap<>();
+    public static Map<String, CellActions.CellActionsNames> actionMap = new HashMap<>();
     static boolean gameOver = false;
     static boolean gameStoped = false;
     static Random rand = new Random();
@@ -304,12 +305,24 @@ public class Main extends Application {
         }
     }
 
+    public void actionMapGenerate() {
+        actionMap.put("o", CellActions.CellActionsNames.DO_NOTHING);
+        actionMap.put("a", CellActions.CellActionsNames.MOVE_LEFT);
+        actionMap.put("b", CellActions.CellActionsNames.MOVE_UP);
+        actionMap.put("c", CellActions.CellActionsNames.MOVE_RIGHT);
+        actionMap.put("d", CellActions.CellActionsNames.MOVE_DOWN);
+        actionMap.put("e", CellActions.CellActionsNames.EAT_CLOSE_FOOD);
+        actionMap.put("f", CellActions.CellActionsNames.ATTACK);
+        actionMap.put("g", CellActions.CellActionsNames.DEFENCE);
+        actionMap.put("h", CellActions.CellActionsNames.GENERATE_CHILD);
+    }
+
     public void squareAdding() { //начальная инициация всех клеток игрового поля
         int index = 0;
         for (int i = 0; i < boardSettings.getWidth(); i++) {
             for (int j = 0; j < boardSettings.getHeight(); j++) {
                 squares.add(new Square(new Coordinates(i * boardSettings.getSquareSize(), j * boardSettings.getSquareSize()), 0, 0, new ArrayList<>()));
-                mapSquareCoordinatesToIndex.put((String.valueOf(i) + "|" + String.valueOf(j)), index);
+                mapSquareCoordinatesToIndex.put((i + "|" + j), index);
                 index++;
             }
         }

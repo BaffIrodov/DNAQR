@@ -14,6 +14,9 @@ public class DNAQRApplication {
 		Main main = new Main();
 		main.squareAdding();
 		long start = System.currentTimeMillis();
+		for (int i = 0; i < 1; i++) {
+			main.actionMapGenerate();
+		}
 		for (int i = 0; i < 100; i++) {
 			main.cellAdding();
 			main.tick();
